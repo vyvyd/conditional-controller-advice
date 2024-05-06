@@ -69,7 +69,7 @@ We'll create two @WebMVCTest classes, each for a controller.
 
 In our particular use-case, the `@WebMvcTest` is not able to instantiate the required `Service` class (since WebMvcTests don't load the entire context by default). This forces us to implement a mock for the service, in *all* controllers within the application.
 
-This is the case if the controller under test resides in a module does not require the library's @ResponseBodyAdvice. This might catch developers off guard.
+This might catch developers off guard, and requires additional boilerplate in all @WebMvcTest test-cases.
 
 ### Finer details
 One might think that because the @ResponseAdvice was configured to attach itself to only one controller, that the @WebMvcTest for other controllers might not require it to be loaded into the application context.
@@ -104,13 +104,15 @@ class ResponseBodyAdvice(
 
 }
 ```
-With this and the `annotations` parameter of the controller advice, all @WebMvcTests that don't require the `ResponseBodyAdvice` will not require any extra test-setup.
+With this and the `annotations` parameter of the controller advice, all @WebMvcTests that don't require the `ResponseBodyAdvice` will not require any extra test-setup. In-case the controller under test requires this controller advice, then they get their dependencies resolved during run-time.
+
+Since `@RestControllerAdvice` components are always tested with a Spring Application Context, dependency-injection of the `@Service` component may not be required here.
 
 ### Use a @Configuration class
-A specific @Configuration class can be used in tests that do not require the instantiation of the service-class mocks in the tests themselves. This is much like how we exclude auto-configuration classes in specific tests.
+A specific @Configuration class can be used in tests that do not require the instantiation of the service-class mocks in the tests themselves. This is much like how we exclude auto-configuration classes from some libraries (like Spring Security) in tests across the application.
 
 ### Use @SpringBootTest instead
-Depending on your particular project setup, this might not always be the easiest option.
+Depending on your particular project setup, this might not always be the easiest option. The boiler-plate that is required might be more than just setting up a mock for the `@RestControllerAdvice`
 
 ## Other solutions that did not work
 
